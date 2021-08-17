@@ -85,3 +85,22 @@ body {
 #results-container > h2 {
   padding: 0 0 1em 0;
 }
+
+#gameboard {
+  width: clamp(15rem, 60vw, 30rem);
+  height: clamp(15rem, 60vw, 30rem);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.gamesquare {
+  width: clamp(5rem, 20vw, 10rem);
+  height: clamp(5rem, 20vw, 10rem);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: clamp(3em, 10vw, 5em);
+  background-color: green;
+  border: 1px solid black;
+}
