@@ -41,6 +41,8 @@ const DOMElements = (function () {
     gamesquares,
     turnDisplay,
     reset,
+    resultScreen,
+    resultMsg,
   };
 })();
 
@@ -94,57 +96,31 @@ const GameBoard = (function () {
   }
 
   function reset() {
-    gamesquares.forEach((square) => {
+    DOMElements.gamesquares.forEach((square) => {
       square.textContent = "";
     });
     _gameboard.fill("");
+    switchTurn();
   }
 
   function changeSquare() {
+    /* 
+      - Have function take input of idx
+      - Check if the square is empty
+        - If it is, update square
+        - Then change turn
+      - Have the win check logic happen in the GameLogic Module
+    */
     if (!this.textContent) {
       this.textContent = turn ? "X" : "O";
       _gameboard[this.dataset.idx] = this.textContent;
-      let victory = checkWin();
-      if (victory === "win" || victory === "tie") {
-        victory === "tie" ? "" : victory === "win" && turn ? Player1.addWin() : Player2.addWin();
-        DisplayController.displayResults(victory === "tie" ? "tie" : turn ? "player1" : "player2");
-      } else {
-        switchTurn();
-      }
-    }
-  }
 
-  function checkWin() {
-    if (
-      (_gameboard[0] !== "" &&
-        _gameboard[0] === _gameboard[1] &&
-        _gameboard[1] === _gameboard[2]) ||
-      (_gameboard[3] !== "" &&
-        _gameboard[3] === _gameboard[4] &&
-        _gameboard[4] === _gameboard[5]) ||
-      (_gameboard[6] !== "" &&
-        _gameboard[6] === _gameboard[7] &&
-        _gameboard[7] === _gameboard[8]) ||
-      (_gameboard[0] !== "" &&
-        _gameboard[0] === _gameboard[3] &&
-        _gameboard[3] === _gameboard[6]) ||
-      (_gameboard[1] !== "" &&
-        _gameboard[1] === _gameboard[4] &&
-        _gameboard[4] === _gameboard[7]) ||
-      (_gameboard[2] !== "" &&
-        _gameboard[2] === _gameboard[5] &&
-        _gameboard[5] === _gameboard[8]) ||
-      (_gameboard[0] !== "" &&
-        _gameboard[0] === _gameboard[4] &&
-        _gameboard[4] === _gameboard[8]) ||
-      (_gameboard[2] !== "" && _gameboard[2] === _gameboard[4] && _gameboard[4] === _gameboard[6])
-    ) {
-      return "win";
-    }
-    if (_gameboard.includes("")) {
-      return "none";
-    } else {
-      return "tie";
+      let result = GameLogic.checkWin();
+
+      if (result !== "win" && result !== "tie") {
+        switchTurn();
+        DisplayController.displayTurn();
+      }
     }
   }
 
@@ -162,11 +138,7 @@ const GameBoard = (function () {
 
   init();
 
-  return {
-    reset,
-    getGameState,
-    getTurn,
-  };
+  return { reset, getGameState, getTurn };
 })();
 
 /* Module that controls what's on the screen */
@@ -180,26 +152,27 @@ const DisplayController = (function () {
 
   // bind events
   function bindEvents() {
-    DOMElements.pve.addEventListener("click", changeMode.bind(DOMElements.pve));
+    DOMElements.pve.addEventListener("click", _changemode.bind(DOMElements.pve));
 
-    DOMElements.pvp.addEventListener("click", changeMode.bind(DOMElements.pvp));
+    DOMElements.pvp.addEventListener("click", _changemode.bind(DOMElements.pvp));
 
-    DOMElements.startBtn.addEventListener("click", startGame);
+    DOMElements.startBtn.addEventListener("click", _startGame);
 
     DOMElements.reset.addEventListener("click", () => {
-      resultScreen.classList = "";
+      DOMElements.resultScreen.classList = "";
       GameBoard.reset();
+      updateScoreboard();
     });
   }
 
-  function changeMode() {
+  function _changemode() {
     if (!this.classList.contains("selected")) {
       DOMElements.pve.classList.toggle("selected");
       DOMElements.pvp.classList.toggle("selected");
     }
   }
 
-  function startGame() {
+  function _startGame() {
     let p1Name = DOMElements.pveInputs[0].value || DOMElements.pveInputs[0].placeholder;
     let p2Name = DOMElements.pveInputs[1].value || DOMElements.pveInputs[1].placeholder;
     let p2isAI = true;
@@ -215,12 +188,12 @@ const DisplayController = (function () {
     Player2.updateInfo(p2Name, p2isAI);
     Player2.resetScore();
 
-    initializeScoreboard();
+    _initializeScoreboard();
     DOMElements.startScreen.classList.add("hidden");
     DOMElements.gameScreen.classList.remove("hidden");
   }
 
-  function initializeScoreboard() {
+  function _initializeScoreboard() {
     DOMElements.p1Name.textContent = Player1.getName();
     DOMElements.p2Name.textContent = Player2.getName();
     updateScoreboard();
@@ -241,18 +214,21 @@ const DisplayController = (function () {
     }
   }
 
+  /* Everything below is unrevised */
   function displayResults(gameResult) {
     if (gameResult === "player1" || gameResult === "player2" || gameResult === "tie") {
-      if (gameResult === "tie") {
-        resultMsg.textContent = "It's a tie!";
-      } else if (gameResult === "player1") {
-        resultMsg.textContent = `${Player1.getName()} won!`;
-      } else {
-        resultMsg.textContent = `${Player2.getName()} won!`;
+      let msg = "It's a tie!";
+      console.log(gameResult);
+      if (gameResult === "player1") {
+        msg = `${Player1.getName()} won!`;
+      } else if (gameResult === "player2") {
+        msg = `${Player2.getName()} won!`;
       }
-      resultScreen.classList.add("enter");
+      DOMElements.resultMsg.textContent = msg;
+
+      DOMElements.resultScreen.classList.add("enter");
       setTimeout(() => {
-        resultScreen.classList.add("active");
+        DOMElements.resultScreen.classList.add("active");
       }, 150);
     }
   }
@@ -263,7 +239,61 @@ const DisplayController = (function () {
 
   init();
 
-  return { updateScoreboard, displayResults, getPlayers };
+  return { updateScoreboard, displayTurn, displayResults, getPlayers };
 })();
 
 /* Game Logic Controller */
+const GameLogic = (function (players) {
+  const Player1 = players.Player1;
+  const Player2 = players.Player2;
+
+  const winCombo = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  const gb = GameBoard.getGameState();
+
+  function checkWin() {
+    let winResult = winCombo.some((combo) => {
+      if (gb[combo[0]] !== "") {
+        for (let i = 1; i < 3; i++) {
+          if (gb[combo[i]] !== gb[combo[i - 1]]) {
+            return false;
+          }
+        }
+        return true;
+      }
+    });
+
+    if (winResult) {
+      _handleGameResults("win");
+      return "win";
+    } else if (!gb.includes("")) {
+      _handleGameResults("tie");
+      return "tie";
+    } else {
+      return "";
+    }
+  }
+
+  function _handleGameResults(gameResult) {
+    const currTurn = GameBoard.getTurn();
+    if (gameResult === "win") {
+      currTurn ? Player1.win(true) : Player2.win(true);
+    }
+
+    DisplayController.displayResults(
+      gameResult === "tie" ? "tie" : currTurn ? "player1" : "player2"
+    );
+  }
+
+  return {
+    checkWin,
+  };
+})(DisplayController.getPlayers());
