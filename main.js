@@ -1,3 +1,4 @@
+/* DOM Elements Module */
 const DOMElements = (function () {
   const startScreen = document.getElementById("start-screen");
   const pve = document.getElementById("player-ai");
@@ -8,14 +9,18 @@ const DOMElements = (function () {
 
   const gameScreen = document.getElementById("game-screen");
 
-  const gamesquares = document.querySelectorAll(".gamesquare");
-  const turnDisplay = document.getElementById("turn");
   const p1 = document.getElementById("player1");
   const p1Name = p1.querySelector(".name");
   const p1Score = p1.querySelector(".score");
+
   const p2 = document.getElementById("player2");
   const p2Name = p2.querySelector(".name");
   const p2Score = p2.querySelector(".score");
+  const userType = document.getElementById("scoreboard-p2-icon");
+
+  const gamesquares = document.querySelectorAll(".gamesquare");
+  const turnDisplay = document.getElementById("turn");
+
   const reset = document.getElementById("reset-game");
   const resultScreen = document.getElementById("results-screen");
   const resultMsg = resultScreen.querySelector("h2");
@@ -28,145 +33,62 @@ const DOMElements = (function () {
     pvpInputs,
     startBtn,
     gameScreen,
+    p1Name,
+    p1Score,
+    p2Name,
+    p2Score,
+    userType,
+    gamesquares,
+    turnDisplay,
+    reset,
   };
 })();
 
+/* Player Factory Function */
 const Player = (name, isAI = false) => {
-  let score = 0;
+  let _score = 0;
 
-  function addWin() {
-    score++;
-    DisplayController.updateScoreboard();
+  function updateInfo(newName, ai) {
+    name = newName;
+    isAI = ai;
   }
 
   function getName() {
     return name;
   }
 
+  function win(didWin) {
+    if (didWin) _score++;
+  }
+
   function getScore() {
-    return score;
+    return _score;
+  }
+
+  function resetScore() {
+    score = 0;
   }
 
   function isPlayerAI() {
     return isAI;
   }
 
-  return {
-    getName,
-    addWin,
-    getScore,
-    isPlayerAI,
-  };
+  return { updateInfo, getName, win, getScore, resetScore, isPlayerAI };
 };
 
-const DisplayController = (function () {
-  let Player1 = Player("Player 1");
-  let Player2 = Player("Player 2");
-
-  function init() {
-    bindEvents();
-  }
-
-  // bind events
-  function bindEvents() {
-    DOMElements.pve.addEventListener("click", changeMode.bind(DOMElements.pve));
-
-    DOMElements.pvp.addEventListener("click", changeMode.bind(DOMElements.pvp));
-
-    DOMElements.startBtn.addEventListener("click", startGame);
-
-    /*
-    p1Name.addEventListener("change", (e) => {
-      Player1.changeName(e.target.value);
-      GameBoard.showCurrentTurn();
-    });
-    p2Name.addEventListener("change", (e) => {
-      Player2.changeName(e.target.value);
-      GameBoard.showCurrentTurn();
-    });
-    */
-    reset.addEventListener("click", () => {
-      resultScreen.classList = "";
-      GameBoard.reset();
-    });
-  }
-
-  function changeMode() {
-    if (!this.classList.contains("selected")) {
-      DOMElements.pve.classList.toggle("selected");
-      DOMElements.pvp.classList.toggle("selected");
-    }
-  }
-
-  function startGame() {
-    let p1Name =
-      DOMElements.pveInputs[0].value || DOMElements.pveInputs[0].placeholder;
-    let p2Name =
-      DOMElements.pveInputs[1].value || DOMElements.pveInputs[1].placeholder;
-    let p2isAI = true;
-
-    if (!DOMElements.pve.classList.contains("selected")) {
-      p1Name =
-        DOMElements.pvpInputs[0].value || DOMElements.pvpInputs[0].placeholder;
-      p2Name =
-        DOMElements.pvpInputs[1].value || DOMElements.pvpInputs[1].placeholder;
-      p2isAI = false;
-    }
-
-    console.log(`Player 1: ${p1Name} Player2: ${p2Name}`);
-    //DOMElements.startScreen.classList.add("hidden");
-    //DOMElements.gameScreen.classList.remove("hidden");
-  }
-
-  function updateScoreboard() {
-    p1Score.textContent = Player1.getScore();
-    p2Score.textContent = Player2.getScore();
-  }
-
-  function displayResults(gameResult) {
-    if (
-      gameResult === "player1" ||
-      gameResult === "player2" ||
-      gameResult === "tie"
-    ) {
-      if (gameResult === "tie") {
-        resultMsg.textContent = "It's a tie!";
-      } else if (gameResult === "player1") {
-        resultMsg.textContent = `${Player1.getName()} won!`;
-      } else {
-        resultMsg.textContent = `${Player2.getName()} won!`;
-      }
-      resultScreen.classList.add("enter");
-      setTimeout(() => {
-        resultScreen.classList.add("active");
-      }, 150);
-    }
-  }
-
-  function getPlayers() {
-    return { Player1, Player2 };
-  }
-
-  init();
-
-  return { updateScoreboard, displayResults, getPlayers };
-})();
-
-/*
-const GameBoard = (function (players) {
+/* Module that deals with the gameboard */
+const GameBoard = (function () {
   const _gameboard = ["", "", "", "", "", "", "", "", ""];
-  const { Player1, Player2 } = players;
-  let turn = true;
+  let turn = true; // "true" - Player 1's turn; "false" - Player 2's turn
 
   function init() {
     console.log("initializing");
     bindEvents();
-    showCurrentTurn();
   }
 
   // bind events
   function bindEvents() {
-    gamesquares.forEach((square) => {
+    DOMElements.gamesquares.forEach((square) => {
       square.addEventListener("click", changeSquare);
     });
   }
@@ -176,8 +98,6 @@ const GameBoard = (function (players) {
       square.textContent = "";
     });
     _gameboard.fill("");
-    switchTurn();
-    showCurrentTurn();
   }
 
   function changeSquare() {
@@ -186,26 +106,11 @@ const GameBoard = (function (players) {
       _gameboard[this.dataset.idx] = this.textContent;
       let victory = checkWin();
       if (victory === "win" || victory === "tie") {
-        victory === "tie"
-          ? ""
-          : victory === "win" && turn
-          ? Player1.addWin()
-          : Player2.addWin();
-        DisplayController.displayResults(
-          victory === "tie" ? "tie" : turn ? "player1" : "player2"
-        );
+        victory === "tie" ? "" : victory === "win" && turn ? Player1.addWin() : Player2.addWin();
+        DisplayController.displayResults(victory === "tie" ? "tie" : turn ? "player1" : "player2");
       } else {
         switchTurn();
-        showCurrentTurn();
       }
-    }
-  }
-
-  function showCurrentTurn() {
-    if (turn) {
-      turnDisplay.textContent = `${Player1.getName()}'s Turn`;
-    } else {
-      turnDisplay.textContent = `${Player2.getName()}'s Turn`;
     }
   }
 
@@ -232,9 +137,7 @@ const GameBoard = (function (players) {
       (_gameboard[0] !== "" &&
         _gameboard[0] === _gameboard[4] &&
         _gameboard[4] === _gameboard[8]) ||
-      (_gameboard[2] !== "" &&
-        _gameboard[2] === _gameboard[4] &&
-        _gameboard[4] === _gameboard[6])
+      (_gameboard[2] !== "" && _gameboard[2] === _gameboard[4] && _gameboard[4] === _gameboard[6])
     ) {
       return "win";
     }
@@ -253,13 +156,114 @@ const GameBoard = (function (players) {
     turn = !turn;
   }
 
+  function getTurn() {
+    return turn;
+  }
+
   init();
 
   return {
     reset,
-    showCurrentTurn,
     getGameState,
+    getTurn,
   };
-})(DisplayController.getPlayers());
+})();
 
-*/
+/* Module that controls what's on the screen */
+const DisplayController = (function () {
+  let Player1 = Player("Player 1");
+  let Player2 = Player("Player 2");
+
+  function init() {
+    bindEvents();
+  }
+
+  // bind events
+  function bindEvents() {
+    DOMElements.pve.addEventListener("click", changeMode.bind(DOMElements.pve));
+
+    DOMElements.pvp.addEventListener("click", changeMode.bind(DOMElements.pvp));
+
+    DOMElements.startBtn.addEventListener("click", startGame);
+
+    DOMElements.reset.addEventListener("click", () => {
+      resultScreen.classList = "";
+      GameBoard.reset();
+    });
+  }
+
+  function changeMode() {
+    if (!this.classList.contains("selected")) {
+      DOMElements.pve.classList.toggle("selected");
+      DOMElements.pvp.classList.toggle("selected");
+    }
+  }
+
+  function startGame() {
+    let p1Name = DOMElements.pveInputs[0].value || DOMElements.pveInputs[0].placeholder;
+    let p2Name = DOMElements.pveInputs[1].value || DOMElements.pveInputs[1].placeholder;
+    let p2isAI = true;
+
+    if (!DOMElements.pve.classList.contains("selected")) {
+      p1Name = DOMElements.pvpInputs[0].value || DOMElements.pvpInputs[0].placeholder;
+      p2Name = DOMElements.pvpInputs[1].value || DOMElements.pvpInputs[1].placeholder;
+      p2isAI = false;
+    }
+
+    Player1.updateInfo(p1Name, false);
+    Player1.resetScore();
+    Player2.updateInfo(p2Name, p2isAI);
+    Player2.resetScore();
+
+    initializeScoreboard();
+    DOMElements.startScreen.classList.add("hidden");
+    DOMElements.gameScreen.classList.remove("hidden");
+  }
+
+  function initializeScoreboard() {
+    DOMElements.p1Name.textContent = Player1.getName();
+    DOMElements.p2Name.textContent = Player2.getName();
+    updateScoreboard();
+    DOMElements.userType.classList = Player2.isPlayerAI() ? "fas fa-desktop" : "fas fa-user";
+  }
+
+  function updateScoreboard() {
+    DOMElements.p1Score.textContent = Player1.getScore();
+    DOMElements.p2Score.textContent = Player2.getScore();
+    displayTurn();
+  }
+
+  function displayTurn() {
+    if (GameBoard.getTurn()) {
+      DOMElements.turnDisplay.textContent = `${Player1.getName()}'s Turn`;
+    } else {
+      DOMElements.turnDisplay.textContent = `${Player2.getName()}'s Turn`;
+    }
+  }
+
+  function displayResults(gameResult) {
+    if (gameResult === "player1" || gameResult === "player2" || gameResult === "tie") {
+      if (gameResult === "tie") {
+        resultMsg.textContent = "It's a tie!";
+      } else if (gameResult === "player1") {
+        resultMsg.textContent = `${Player1.getName()} won!`;
+      } else {
+        resultMsg.textContent = `${Player2.getName()} won!`;
+      }
+      resultScreen.classList.add("enter");
+      setTimeout(() => {
+        resultScreen.classList.add("active");
+      }, 150);
+    }
+  }
+
+  function getPlayers() {
+    return { Player1, Player2 };
+  }
+
+  init();
+
+  return { updateScoreboard, displayResults, getPlayers };
+})();
+
+/* Game Logic Controller */
