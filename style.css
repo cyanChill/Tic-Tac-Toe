@@ -4,7 +4,6 @@
 :root {
   --primary: #b19cd9;
   --primary-dark: #a183d8;
-  --primary-disabled: #aa9dca;
 
   --bkg-main: #fff;
   --results-bkg-backsplash: rgba(255, 255, 255, 0.7);
@@ -53,10 +52,6 @@ body {
 .btn:hover,
 .btn:focus {
   background: var(--primary-dark);
-}
-
-.btn:disabled {
-  background: var(--primary-disabled);
 }
 
 /* Hides elements in DOM */
