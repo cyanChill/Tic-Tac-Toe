@@ -4,6 +4,7 @@
 :root {
   --primary: #b19cd9;
   --primary-dark: #a183d8;
+  --primary-disabled: #aa9dca;
 
   --bkg-main: #fff;
   --results-bkg-backsplash: rgba(255, 255, 255, 0.7);
@@ -51,7 +52,11 @@ body {
 
 .btn:hover,
 .btn:focus {
-  background-color: var(--primary-dark);
+  background: var(--primary-dark);
+}
+
+.btn:disabled {
+  background: var(--primary-disabled);
 }
 
 /* Hides elements in DOM */
@@ -61,7 +66,7 @@ body {
 
 /* Game Title */
 .game-title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-family: "Bangers", cursive;
   font-weight: bold;
 }
@@ -100,8 +105,23 @@ body {
   margin: 0.5em;
 
   border-radius: 0.5em;
+  border: 1px solid transparent;
   box-shadow: 1px 1px 5px 2px var(--shadow);
   background: var(--bkg-main);
+}
+
+#start-screen > div.selected {
+  animation: 2s ease-in-out alternate infinite grow;
+  border: 1px solid var(--shadow-dark);
+}
+
+@keyframes grow {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.02);
+  }
 }
 
 /* Holds Icon and Player Name Input */
