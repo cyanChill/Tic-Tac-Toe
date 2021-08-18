@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bangers&display=swap");
 
 :root {
   --primary: #b19cd9;
@@ -7,7 +8,12 @@
   --bkg-main: #fff;
   --results-bkg-backsplash: rgba(255, 255, 255, 0.7);
 
+  --error: rgb(255, 142, 142);
+  --error-hover: rgb(255, 92, 92);
+
   --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-dark: rgba(0, 0, 0, 0.7);
+  --font-family: "Source Sans Pro", sans-serif;
 }
 
 *,
@@ -19,15 +25,11 @@
 }
 
 body {
+  min-height: 100vh;
   line-height: 1.6;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   position: relative;
-  margin-top: 1em;
   background: var(--bkg-main);
-  font-family: "Source Sans Pro", sans-serif;
+  font-family: var(--font-family);
 }
 
 .btn {
@@ -47,6 +49,89 @@ body {
   background-color: var(--primary-dark);
 }
 
+/* Hides elements in DOM */
+.hidden {
+  display: none !important;
+}
+
+/* Game Title */
+.game-title {
+  font-size: 2rem;
+  font-family: "Bangers", cursive;
+  font-weight: bold;
+}
+
+/* "vs" styling */
+.vs {
+  font-size: 1.2rem;
+  font-family: "Bangers", cursive;
+}
+
+/* Start Screen */
+#start-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+
+  background: var(--bkg-main);
+}
+
+/* The 2 divs for the 2 modes*/
+#start-screen > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.25em, 3vw, 1em);
+
+  padding: 1em 0.75em;
+  margin: 0.5em;
+
+  border-radius: 0.5em;
+  box-shadow: 1px 1px 5px 2px var(--shadow);
+  background: var(--bkg-main);
+  font-size: clamp(1rem, 5vw, 1.25rem);
+}
+
+/* Holds Icon and Player Name Input */
+.player-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.name-input {
+  width: 14ch;
+  text-align: center;
+  padding: 0.5em 1em;
+  margin: 0 0.25em;
+  border: 1px solid var(--shadow);
+  border-radius: 0.5em;
+  outline: none;
+}
+
+.name-input,
+.name-input:disabled {
+  background: var(--bkg-main);
+}
+
+.name-input:focus {
+  border: 1px solid var(--shadow-dark);
+}
+
+@media (min-width: 568px) {
+  #start-screen > div {
+    flex-direction: row;
+  }
+}
+
 /* Pop Up Screen Displaying Results */
 #results-screen {
   position: fixed;
@@ -60,6 +145,7 @@ body {
   transition: all 250ms ease-in;
 }
 
+/* For Animation Styling */
 #results-screen.enter {
   display: block;
 }
@@ -70,15 +156,18 @@ body {
 
 #results-container {
   min-width: 15em;
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  position: fixed;
-  padding: 1em;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+
+  padding: 0.5em;
   border-radius: 0.5em;
   box-shadow: 3px 3px 5px 2px var(--shadow);
   background: var(--bkg-main);
@@ -88,13 +177,21 @@ body {
   margin: 0.5em;
 }
 
-/* Scoreboard With Player Names */
-#scoreboard {
-  width: 100%;
+#action-btn {
   display: flex;
-  justify-content: center;
-  gap: clamp(5em, 25vw, 15em);
+  gap: 0.5em;
 }
+
+/* New Game Button Styling */
+#new-game {
+  background: var(--error);
+}
+
+#new-game:hover {
+  background: var(--error-hover);
+}
+
+/*
 
 #player1,
 #player2 {
@@ -114,7 +211,7 @@ body {
   position: relative;
 }
 
-/* Displays Current Turn */
+// Displays Current Turn 
 #turn {
   display: flex;
   justify-content: center;
@@ -126,7 +223,7 @@ body {
   margin: 0.5rem 0;
 }
 
-/* Physical Tic Tac Toe Board */
+// Physical Tic Tac Toe Board
 #gameboard {
   width: clamp(15rem, 60vw, 30rem);
   height: clamp(15rem, 60vw, 30rem);
@@ -135,7 +232,7 @@ body {
   grid-template-rows: repeat(3, 1fr);
 }
 
-/* Individual Squares on the Tic Tac Toe Board*/
+// Individual Squares on the Tic Tac Toe Board
 .gamesquare {
   width: clamp(5rem, 20vw, 10rem);
   height: clamp(5rem, 20vw, 10rem);
@@ -145,4 +242,23 @@ body {
   font-size: clamp(3em, 10vw, 5em);
   background-color: green;
   border: 1px solid black;
+}
+
+*/
+
+/* Screen Containing the Gameboard & Scoreboard*/
+#game-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Scoreboard Container */
+#scoreboard {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: clamp(5em, 25vw, 15em);
 }
