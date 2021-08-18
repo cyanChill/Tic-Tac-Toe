@@ -119,6 +119,7 @@ const GameBoard = (function (players) {
 
   return {
     reset,
+    currentTurn,
   };
 })({ Player1, Player2 });
 
@@ -144,9 +145,11 @@ const DisplayController = (function (players) {
   function bindEvents() {
     p1Name.addEventListener("change", (e) => {
       Player1.changeName(e.target.value);
+      GameBoard.currentTurn();
     });
     p2Name.addEventListener("change", (e) => {
       Player2.changeName(e.target.value);
+      GameBoard.currentTurn();
     });
     reset.addEventListener("click", () => {
       resultScreen.classList = "";
