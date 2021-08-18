@@ -60,7 +60,11 @@ const GameBoard = (function (players) {
       _gameboard[this.dataset.idx] = this.textContent;
       let victory = checkWin();
       if (victory === "win" || victory === "tie") {
-        victory === "win" && turn ? Player1.addWin() : Player2.addWin();
+        victory === "tie"
+          ? ""
+          : victory === "win" && turn
+          ? Player1.addWin()
+          : Player2.addWin();
         DisplayController.displayResults(
           victory === "tie" ? "tie" : turn ? "player1" : "player2"
         );
