@@ -20,6 +20,7 @@
 *::before,
 *::after {
   box-sizing: border-box;
+
   padding: 0;
   margin: 0;
 }
@@ -27,20 +28,24 @@
 body {
   min-height: 100vh;
   line-height: 1.6;
+
   position: relative;
-  background: var(--bkg-main);
+
   font-family: var(--font-family);
+
+  background: var(--bkg-main);
 }
 
 .btn {
-  background: var(--primary);
-  color: #fff;
   font-weight: bold;
   padding: 0.5em 1em;
-  outline: none;
+
   border: 1px solid transparent;
   border-radius: 0.5em;
   box-shadow: 2px 2px 5px 1px var(--shadow);
+  outline: none;
+  background: var(--primary);
+  color: #fff;
   cursor: pointer;
 }
 
@@ -90,13 +95,13 @@ body {
   align-items: center;
   gap: clamp(0.25em, 3vw, 1em);
 
+  font-size: clamp(1rem, 5vw, 1.25rem);
   padding: 1em 0.75em;
   margin: 0.5em;
 
   border-radius: 0.5em;
   box-shadow: 1px 1px 5px 2px var(--shadow);
   background: var(--bkg-main);
-  font-size: clamp(1rem, 5vw, 1.25rem);
 }
 
 /* Holds Icon and Player Name Input */
@@ -109,9 +114,11 @@ body {
 
 .name-input {
   width: 14ch;
+
   text-align: center;
   padding: 0.5em 1em;
   margin: 0 0.25em;
+
   border: 1px solid var(--shadow);
   border-radius: 0.5em;
   outline: none;
@@ -139,10 +146,12 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--results-bkg-backsplash);
+
   display: none;
   opacity: 0;
   transition: all 250ms ease-in;
+
+  background: var(--results-bkg-backsplash);
 }
 
 /* For Animation Styling */
@@ -169,6 +178,7 @@ body {
 
   padding: 0.5em;
   border-radius: 0.5em;
+
   box-shadow: 3px 3px 5px 2px var(--shadow);
   background: var(--bkg-main);
 }
@@ -191,74 +201,70 @@ body {
   background: var(--error-hover);
 }
 
-/*
-
-#player1,
-#player2 {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-size: clamp(1rem, 5vw, 1.5rem);
-}
-
-.name {
-  width: 12ch;
-  border: 0;
-  border-bottom: 1px solid black;
-  font-size: clamp(0.9rem, 5vw, 1.5rem);
-  text-align: center;
-  position: relative;
-}
-
-// Displays Current Turn 
-#turn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: aqua;
-  height: clamp(3rem, 14vw, 6rem);
-  font-size: clamp(1.5em, 7vw, 3em);
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-}
-
-// Physical Tic Tac Toe Board
-#gameboard {
-  width: clamp(15rem, 60vw, 30rem);
-  height: clamp(15rem, 60vw, 30rem);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-}
-
-// Individual Squares on the Tic Tac Toe Board
-.gamesquare {
-  width: clamp(5rem, 20vw, 10rem);
-  height: clamp(5rem, 20vw, 10rem);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: clamp(3em, 10vw, 5em);
-  background-color: green;
-  border: 1px solid black;
-}
-
-*/
-
 /* Screen Containing the Gameboard & Scoreboard*/
 #game-screen {
   min-height: 100vh;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 0.5em;
 }
 
 /* Scoreboard Container */
 #scoreboard {
   width: 100%;
+
   display: flex;
   justify-content: center;
   gap: clamp(5em, 25vw, 15em);
+}
+
+#scoreboard > * {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  font-size: clamp(1rem, 5vw, 1.5rem);
+}
+
+/* Current Turn Container */
+#turn {
+  height: clamp(3rem, 14vw, 5rem);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: clamp(1.5em, 7vw, 2.75em);
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+
+  background: aqua; /* Temporary */
+}
+
+/* Physical Tic Tac Toe Board */
+#gameboard {
+  width: clamp(15rem, 60vw, 30rem);
+  height: clamp(15rem, 60vw, 30rem);
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+/* Individual Squares on Gameboard */
+.gamesquare {
+  width: clamp(5rem, 20vw, 10rem);
+  height: clamp(5rem, 20vw, 10rem);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: clamp(3em, 10vw, 5em);
+
+  border: 1px solid black;
+  background-color: green;
 }
