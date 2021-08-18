@@ -33,20 +33,18 @@ const GameBoard = (function (players) {
   function init() {
     console.log("initializing");
     bindEvents();
+    currentTurn();
   }
 
   // cached DOM
   const gamesquares = document.querySelectorAll(".gamesquare");
+  const turnDisplay = document.getElementById("turn");
 
   // bind events
   function bindEvents() {
     gamesquares.forEach((square) => {
       square.addEventListener("click", changeSquare);
     });
-  }
-
-  function startGame() {
-    reset();
   }
 
   function reset() {
@@ -56,23 +54,28 @@ const GameBoard = (function (players) {
     _gameboard.fill("");
   }
 
-  function getBoardState() {
-    return _gameboard;
-  }
-
   function changeSquare() {
     if (!this.textContent) {
       this.textContent = turn ? "X" : "O";
       _gameboard[this.dataset.idx] = this.textContent;
       let victory = checkWin();
-      console.log(victory);
-      if (victory === "win") {
-        turn ? Player1.addWin() : Player2.addWin();
-        reset();
-      } else if (victory == "tie") {
+      if (victory === "win" || victory === "tie") {
+        victory === "win" && turn ? Player1.addWin() : Player2.addWin();
+        DisplayController.displayResults(
+          victory === "tie" ? "tie" : turn ? "player1" : "player2"
+        );
       } else {
         turn = !turn;
+        currentTurn();
       }
+    }
+  }
+
+  function currentTurn() {
+    if (turn) {
+      turnDisplay.textContent = `${Player1.getName()}'s Turn`;
+    } else {
+      turnDisplay.textContent = `${Player2.getName()}'s Turn`;
     }
   }
 
@@ -115,8 +118,7 @@ const GameBoard = (function (players) {
   init();
 
   return {
-    startGame,
-    getBoardState,
+    reset,
   };
 })({ Player1, Player2 });
 
@@ -134,15 +136,22 @@ const DisplayController = (function (players) {
   const p2 = document.getElementById("player2");
   const p2Name = p2.querySelector(".name");
   const p2Score = p2.querySelector(".score");
+  const reset = document.getElementById("reset-game");
+  const resultScreen = document.getElementById("results-screen");
+  const resultMsg = resultScreen.querySelector("h2");
 
   // bind events
   function bindEvents() {
-    p1Name.addEventListener("change", (e) =>
-      Player1.changeName(e.target.value)
-    );
-    p2Name.addEventListener("change", (e) =>
-      Player2.changeName(e.target.value)
-    );
+    p1Name.addEventListener("change", (e) => {
+      Player1.changeName(e.target.value);
+    });
+    p2Name.addEventListener("change", (e) => {
+      Player2.changeName(e.target.value);
+    });
+    reset.addEventListener("click", () => {
+      resultScreen.classList = "";
+      GameBoard.reset();
+    });
   }
 
   function updateScoreboard() {
@@ -150,7 +159,27 @@ const DisplayController = (function (players) {
     p2Score.textContent = Player2.getScore();
   }
 
+  function displayResults(gameResult) {
+    if (
+      gameResult === "player1" ||
+      gameResult === "player2" ||
+      gameResult === "tie"
+    ) {
+      if (gameResult === "tie") {
+        resultMsg.textContent = "It's a tie!";
+      } else if (gameResult === "player1") {
+        resultMsg.textContent = `${Player1.getName()} won!`;
+      } else {
+        resultMsg.textContent = `${Player2.getName()} won!`;
+      }
+      resultScreen.classList.add("enter");
+      setTimeout(() => {
+        resultScreen.classList.add("active");
+      }, 150);
+    }
+  }
+
   init();
 
-  return { updateScoreboard };
+  return { updateScoreboard, displayResults };
 })({ Player1, Player2 });
