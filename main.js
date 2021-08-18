@@ -25,6 +25,8 @@ const DOMElements = (function () {
   const resultScreen = document.getElementById("results-screen");
   const resultMsg = resultScreen.querySelector("h2");
 
+  const newGame = document.getElementById("new-game");
+
   return {
     startScreen,
     pve,
@@ -43,6 +45,7 @@ const DOMElements = (function () {
     reset,
     resultScreen,
     resultMsg,
+    newGame,
   };
 })();
 
@@ -68,7 +71,7 @@ const Player = (name, isAI = false) => {
   }
 
   function resetScore() {
-    score = 0;
+    _score = 0;
   }
 
   function isPlayerAI() {
@@ -136,9 +139,14 @@ const GameBoard = (function () {
     return turn;
   }
 
+  function totalReset() {
+    reset();
+    turn = true;
+  }
+
   init();
 
-  return { reset, getGameState, getTurn };
+  return { reset, getGameState, getTurn, totalReset };
 })();
 
 /* Module that controls what's on the screen */
@@ -162,6 +170,13 @@ const DisplayController = (function () {
       DOMElements.resultScreen.classList = "";
       GameBoard.reset();
       updateScoreboard();
+    });
+
+    DOMElements.newGame.addEventListener("click", () => {
+      DOMElements.resultScreen.classList = "";
+      GameBoard.totalReset();
+      DOMElements.startScreen.classList.remove("hidden");
+      DOMElements.gameScreen.classList.add("hidden");
     });
   }
 
