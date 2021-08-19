@@ -84,6 +84,7 @@ const Player = (name, isAI = false) => {
 const GameBoard = (function () {
   const _gameboard = ["", "", "", "", "", "", "", "", ""];
   let turn = true; // "true" - Player 1's turn; "false" - Player 2's turn
+  let makingMove = false;
 
   function init() {
     console.log("initializing");
@@ -95,6 +96,7 @@ const GameBoard = (function () {
     DOMElements.gamesquares.forEach((square) => {
       let idx = square.dataset.idx;
       square.addEventListener("click", () => {
+        if (!turn && makingMove) return;
         changeSquare(idx);
       });
     });
@@ -107,6 +109,7 @@ const GameBoard = (function () {
     _gameboard.fill("");
     switchTurn();
 
+    // If AI Turn
     if (!turn) {
       GameLogic.AITurn();
     }
@@ -115,7 +118,7 @@ const GameBoard = (function () {
   function changeSquare(idx) {
     if (_gameboard[idx] === "") {
       const squareVal = turn ? "X" : "O";
-      DOMElements.gamesquares[idx].textContent = squareVal;
+      DOMElements.gamesquares[idx].innerHTML = `<span class="pop-in-anim">${squareVal}</span>`;
       _gameboard[idx] = squareVal;
 
       let result = GameLogic.checkWin();
@@ -123,8 +126,13 @@ const GameBoard = (function () {
       if (result !== "win" && result !== "tie") {
         switchTurn();
         DisplayController.displayTurn();
+
         if (!turn) {
-          GameLogic.AITurn();
+          makingMove = true;
+          setTimeout(() => {
+            GameLogic.AITurn();
+            makingMove = false;
+          }, 500);
         }
       }
     }
