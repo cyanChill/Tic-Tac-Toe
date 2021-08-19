@@ -6,7 +6,8 @@ Live Demonstration: https://cyanchill.github.io/Tic-Tac-Toe/
 
 ## What I've Learned:
 
--
+- Learned how to make & use modules and factories
+- Learned to better organize & group my code within these modules
 
 ## Project Info
 
