@@ -111,7 +111,9 @@ const GameBoard = (function () {
   }
 
   function changeSquare(idx) {
-    if (GameLogic.isAI() && _makingMove) return;
+    if (GameLogic.isAI() && _makingMove) {
+      return;
+    }
 
     if (_gameboard[idx] === "") {
       const squareVal = _turn ? "X" : "O";
