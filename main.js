@@ -8,6 +8,8 @@ const DOMElements = (function () {
   const startBtn = document.getElementById("start-btn");
 
   const gameScreen = document.getElementById("game-screen");
+  const gamesquares = document.querySelectorAll(".gamesquare");
+  const turnDisplay = document.getElementById("turn");
 
   const p1 = document.getElementById("player1");
   const p1Name = p1.querySelector(".name");
@@ -17,9 +19,6 @@ const DOMElements = (function () {
   const p2Name = p2.querySelector(".name");
   const p2Score = p2.querySelector(".score");
   const userType = document.getElementById("scoreboard-p2-icon");
-
-  const gamesquares = document.querySelectorAll(".gamesquare");
-  const turnDisplay = document.getElementById("turn");
 
   const reset = document.getElementById("reset-game");
   const resultScreen = document.getElementById("results-screen");
@@ -35,13 +34,13 @@ const DOMElements = (function () {
     pvpInputs,
     startBtn,
     gameScreen,
+    gamesquares,
+    turnDisplay,
     p1Name,
     p1Score,
     p2Name,
     p2Score,
     userType,
-    gamesquares,
-    turnDisplay,
     reset,
     resultScreen,
     resultMsg,
@@ -94,7 +93,10 @@ const GameBoard = (function () {
   // bind events
   function bindEvents() {
     DOMElements.gamesquares.forEach((square) => {
-      square.addEventListener("click", changeSquare);
+      let idx = square.dataset.idx;
+      square.addEventListener("click", () => {
+        changeSquare(idx);
+      });
     });
   }
 
@@ -104,25 +106,26 @@ const GameBoard = (function () {
     });
     _gameboard.fill("");
     switchTurn();
+
+    if (!turn) {
+      GameLogic.AITurn();
+    }
   }
 
-  function changeSquare() {
-    /* 
-      - Have function take input of idx
-      - Check if the square is empty
-        - If it is, update square
-        - Then change turn
-      - Have the win check logic happen in the GameLogic Module
-    */
-    if (!this.textContent) {
-      this.textContent = turn ? "X" : "O";
-      _gameboard[this.dataset.idx] = this.textContent;
+  function changeSquare(idx) {
+    if (_gameboard[idx] === "") {
+      const squareVal = turn ? "X" : "O";
+      DOMElements.gamesquares[idx].textContent = squareVal;
+      _gameboard[idx] = squareVal;
 
       let result = GameLogic.checkWin();
 
       if (result !== "win" && result !== "tie") {
         switchTurn();
         DisplayController.displayTurn();
+        if (!turn) {
+          GameLogic.AITurn();
+        }
       }
     }
   }
@@ -146,7 +149,7 @@ const GameBoard = (function () {
 
   init();
 
-  return { reset, getGameState, getTurn, totalReset };
+  return { reset, getGameState, changeSquare, getTurn, totalReset };
 })();
 
 /* Module that controls what's on the screen */
@@ -174,7 +177,7 @@ const DisplayController = (function () {
 
     DOMElements.newGame.addEventListener("click", () => {
       DOMElements.resultScreen.classList = "";
-      GameBoard.totalReset();
+      GameLogic.totalReset();
       DOMElements.startScreen.classList.remove("hidden");
       DOMElements.gameScreen.classList.add("hidden");
     });
@@ -297,6 +300,22 @@ const GameLogic = (function (players) {
     }
   }
 
+  function AITurn() {
+    const gb = GameBoard.getGameState();
+
+    if (Player2.isPlayerAI()) {
+      const emptyIdx = [];
+      gb.forEach((square, idx) => {
+        if (square === "") {
+          emptyIdx.push(idx);
+        }
+      });
+
+      const randIdx = Math.floor(Math.random() * emptyIdx.length);
+      GameBoard.changeSquare(emptyIdx[randIdx]);
+    }
+  }
+
   function _handleGameResults(gameResult) {
     const currTurn = GameBoard.getTurn();
     if (gameResult === "win") {
@@ -308,7 +327,11 @@ const GameLogic = (function (players) {
     );
   }
 
-  return {
-    checkWin,
-  };
+  function totalReset() {
+    GameBoard.totalReset();
+    Player1.resetScore();
+    Player2.resetScore();
+  }
+
+  return { checkWin, AITurn, totalReset };
 })(DisplayController.getPlayers());
