@@ -50,31 +50,33 @@ const DOMElements = (function () {
 
 /* Player Factory Function */
 const Player = (name, isAI = false) => {
-  let _score = 0;
+  this.name = name;
+  this.isAI = isAI;
+  this.score = 0;
 
   function updateInfo(newName, ai) {
-    name = newName;
-    isAI = ai;
+    this.name = newName;
+    this.isAI = ai;
   }
 
   function getName() {
-    return name;
+    return this.name;
   }
 
   function win() {
-    _score++;
+    this.score++;
   }
 
   function getScore() {
-    return _score;
+    return this.score;
   }
 
   function resetScore() {
-    _score = 0;
+    this.score = 0;
   }
 
   function isPlayerAI() {
-    return isAI;
+    return this.isAI;
   }
 
   return { updateInfo, getName, win, getScore, resetScore, isPlayerAI };
@@ -83,18 +85,17 @@ const Player = (name, isAI = false) => {
 /* Module that deals with the gameboard */
 const GameBoard = (function () {
   const _gameboard = ["", "", "", "", "", "", "", "", ""];
-  let turn = true; // "true" - Player 1's turn; "false" - Player 2's turn
-  let makingMove = false; // Make sure that the player can't make a move for the computer
+  let _turn = true; // "true" - Player 1's turn; "false" - Player 2's turn
+  let _makingMove = false; // Make sure that the player can't make a move for the computer
 
-  // bind events
   function _bindEvents() {
     DOMElements.gamesquares.forEach((square) => {
-      let idx = square.dataset.idx;
-      square.addEventListener("click", () => {
-        if (!turn && makingMove) return;
-        changeSquare(idx);
-      });
+      square.addEventListener("click", trySquareUpdate);
     });
+  }
+
+  function trySquareUpdate() {
+    changeSquare(this.dataset.idx);
   }
 
   function reset() {
@@ -104,28 +105,30 @@ const GameBoard = (function () {
     _gameboard.fill("");
 
     // If AI Turn
-    if (!turn) {
+    if (!_turn) {
       GameLogic.AITurn();
     }
   }
 
   function changeSquare(idx) {
+    if (GameLogic.isAI() && _makingMove) return;
+
     if (_gameboard[idx] === "") {
-      const squareVal = turn ? "X" : "O";
+      const squareVal = _turn ? "X" : "O";
       DOMElements.gamesquares[idx].innerHTML = `<span class="pop-in-anim">${squareVal}</span>`;
       _gameboard[idx] = squareVal;
 
-      let result = GameLogic.checkWin();
+      const result = GameLogic.checkWin(idx, squareVal);
 
-      turn = !turn;
+      _turn = !_turn;
       if (result !== "win" && result !== "tie") {
         DisplayController.displayTurn();
 
-        if (!turn) {
-          makingMove = true;
+        if (!_turn) {
+          _makingMove = true;
           setTimeout(() => {
+            _makingMove = false;
             GameLogic.AITurn();
-            makingMove = false;
           }, 500);
         }
       }
@@ -137,11 +140,11 @@ const GameBoard = (function () {
   }
 
   function getTurn() {
-    return turn;
+    return _turn;
   }
 
   function totalReset() {
-    turn = true;
+    _turn = true;
     reset();
   }
 
@@ -152,13 +155,12 @@ const GameBoard = (function () {
 
 /* Module that controls what's on the screen */
 const DisplayController = (function () {
-  let Player1 = Player("Player 1");
-  let Player2 = Player("Player 2");
+  const _Player1 = Player("Player 1");
+  const _Player2 = Player("Player 2");
 
-  // bind events
   function _bindEvents() {
-    DOMElements.pve.addEventListener("click", _changemode.bind(DOMElements.pve));
-    DOMElements.pvp.addEventListener("click", _changemode.bind(DOMElements.pvp));
+    DOMElements.pve.addEventListener("click", _changeOpponentMode.bind(DOMElements.pve));
+    DOMElements.pvp.addEventListener("click", _changeOpponentMode.bind(DOMElements.pvp));
     DOMElements.startBtn.addEventListener("click", _startGame);
 
     DOMElements.reset.addEventListener("click", () => {
@@ -170,57 +172,60 @@ const DisplayController = (function () {
     DOMElements.newGame.addEventListener("click", () => {
       DOMElements.resultScreen.classList = "";
       GameLogic.totalReset();
-      DOMElements.startScreen.classList.remove("hidden");
-      DOMElements.gameScreen.classList.add("hidden");
+      _switchScreen();
     });
   }
 
-  function _changemode() {
+  function _changeOpponentMode() {
     if (!this.classList.contains("selected")) {
       DOMElements.pve.classList.toggle("selected");
       DOMElements.pvp.classList.toggle("selected");
     }
   }
 
+  function _switchScreen() {
+    DOMElements.startScreen.classList.toggle("hidden");
+    DOMElements.gameScreen.classList.toggle("hidden");
+  }
+
   function _startGame() {
-    let p1Name = DOMElements.pveInputs[0].value || DOMElements.pveInputs[0].placeholder;
-    let p2Name = DOMElements.pveInputs[1].value || DOMElements.pveInputs[1].placeholder;
+    let p1Name = DOMElements.pveInputs[0].value || "Player 1";
+    let p2Name = DOMElements.pveInputs[1].value || "Computer";
     let p2isAI = true;
 
     if (!DOMElements.pve.classList.contains("selected")) {
-      p1Name = DOMElements.pvpInputs[0].value || DOMElements.pvpInputs[0].placeholder;
-      p2Name = DOMElements.pvpInputs[1].value || DOMElements.pvpInputs[1].placeholder;
+      p1Name = DOMElements.pvpInputs[0].value || "Player 1";
+      p2Name = DOMElements.pvpInputs[1].value || "Player 2";
       p2isAI = false;
     }
 
-    Player1.updateInfo(p1Name, false);
-    Player1.resetScore();
-    Player2.updateInfo(p2Name, p2isAI);
-    Player2.resetScore();
+    _Player1.updateInfo(p1Name, false);
+    _Player1.resetScore();
+    _Player2.updateInfo(p2Name, p2isAI);
+    _Player2.resetScore();
 
     _initializeScoreboard();
-    DOMElements.startScreen.classList.add("hidden");
-    DOMElements.gameScreen.classList.remove("hidden");
+    _switchScreen();
   }
 
   function _initializeScoreboard() {
-    DOMElements.p1Name.textContent = Player1.getName();
-    DOMElements.p2Name.textContent = Player2.getName();
+    DOMElements.p1Name.textContent = _Player1.getName();
+    DOMElements.p2Name.textContent = _Player2.getName();
     _updateScoreBoard();
-    DOMElements.userType.classList = Player2.isPlayerAI() ? "fas fa-desktop" : "fas fa-user";
+    DOMElements.userType.classList = GameLogic.isAI() ? "fas fa-desktop" : "fas fa-user";
   }
 
   function _updateScoreBoard() {
-    DOMElements.p1Score.textContent = Player1.getScore();
-    DOMElements.p2Score.textContent = Player2.getScore();
+    DOMElements.p1Score.textContent = _Player1.getScore();
+    DOMElements.p2Score.textContent = _Player2.getScore();
     displayTurn();
   }
 
   function displayTurn() {
     if (GameBoard.getTurn()) {
-      DOMElements.turnDisplay.textContent = `${Player1.getName()}'s Turn`;
+      DOMElements.turnDisplay.textContent = `${_Player1.getName()}'s Turn`;
     } else {
-      DOMElements.turnDisplay.textContent = `${Player2.getName()}'s Turn`;
+      DOMElements.turnDisplay.textContent = `${_Player2.getName()}'s Turn`;
     }
   }
 
@@ -229,9 +234,9 @@ const DisplayController = (function () {
       let msg = "It's a tie!";
       console.log(gameResult);
       if (gameResult === "player1") {
-        msg = `${Player1.getName()} won!`;
+        msg = `${_Player1.getName()} won!`;
       } else if (gameResult === "player2") {
-        msg = `${Player2.getName()} won!`;
+        msg = `${_Player2.getName()} won!`;
       }
       DOMElements.resultMsg.textContent = msg;
 
@@ -243,7 +248,7 @@ const DisplayController = (function () {
   }
 
   function getPlayers() {
-    return { Player1, Player2 };
+    return { _Player1, _Player2 };
   }
 
   _bindEvents();
@@ -253,8 +258,8 @@ const DisplayController = (function () {
 
 /* Game Logic Controller */
 const GameLogic = (function (players) {
-  const Player1 = players.Player1;
-  const Player2 = players.Player2;
+  const _Player1 = players._Player1;
+  const _Player2 = players._Player2;
 
   const winCombo = [
     [0, 1, 2],
@@ -266,19 +271,12 @@ const GameLogic = (function (players) {
     [0, 4, 8],
     [2, 4, 6],
   ];
-  const gb = GameBoard.getGameState();
 
-  function checkWin() {
-    let winResult = winCombo.some((combo) => {
-      if (gb[combo[0]] !== "") {
-        for (let i = 1; i < 3; i++) {
-          if (gb[combo[i]] !== gb[combo[i - 1]]) {
-            return false;
-          }
-        }
-        return true;
-      }
-    });
+  function checkWin(idx, symbol) {
+    const gb = GameBoard.getGameState();
+    let winResult = winCombo
+      .filter((combo) => combo.includes(parseInt(idx)))
+      .some((possCombo) => possCombo.every((idx) => gb[idx] === symbol));
 
     if (winResult) {
       _handleGameResults("win");
@@ -287,14 +285,14 @@ const GameLogic = (function (players) {
       _handleGameResults("tie");
       return "tie";
     } else {
-      return "";
+      return;
     }
   }
 
   function AITurn() {
     const gb = GameBoard.getGameState();
 
-    if (Player2.isPlayerAI()) {
+    if (isAI()) {
       const emptyIdx = [];
       gb.forEach((square, idx) => {
         if (square === "") {
@@ -310,7 +308,7 @@ const GameLogic = (function (players) {
   function _handleGameResults(gameResult) {
     const currTurn = GameBoard.getTurn();
     if (gameResult === "win") {
-      currTurn ? Player1.win() : Player2.win();
+      currTurn ? _Player1.win() : _Player2.win();
     }
 
     DisplayController.displayResults(
@@ -320,9 +318,13 @@ const GameLogic = (function (players) {
 
   function totalReset() {
     GameBoard.totalReset();
-    Player1.resetScore();
-    Player2.resetScore();
+    _Player1.resetScore();
+    _Player2.resetScore();
   }
 
-  return { checkWin, AITurn, totalReset };
+  function isAI() {
+    return _Player2.isPlayerAI();
+  }
+
+  return { checkWin, isAI, AITurn, totalReset };
 })(DisplayController.getPlayers());
