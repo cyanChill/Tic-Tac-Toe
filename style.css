@@ -118,6 +118,7 @@ body {
   }
   100% {
     transform: scale(1.02);
+    box-shadow: 1px 1px 5px 2px rgba(188, 131, 253, 0.5);
   }
 }
 
@@ -254,11 +255,10 @@ body {
   justify-content: center;
   align-items: center;
 
-  font-size: clamp(1.5em, 7vw, 2.75em);
+  font-size: clamp(1.5em, 7vw, 2.5em);
+  font-family: "Bangers", cursive;
   padding: 0.5rem;
   margin: 0.5rem 0;
-
-  background: aqua; /* Temporary */
 }
 
 /* Physical Tic Tac Toe Board */
@@ -279,7 +279,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0.05rem;
+  margin: 0.1rem;
 
   font-size: clamp(3em, 10vw, 5em);
 
