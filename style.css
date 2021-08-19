@@ -287,3 +287,20 @@ body {
   border-radius: 0.2em;
   background-color: var(--board-bkg);
 }
+
+.pop-in-anim {
+  animation: pop-in 0.5s forwards ease-in;
+}
+
+/* Popping-In Animation */
+@keyframes pop-in {
+  0% {
+    transform: scale(0);
+  }
+  80% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
