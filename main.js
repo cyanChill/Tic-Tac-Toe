@@ -61,8 +61,8 @@ const Player = (name, isAI = false) => {
     return name;
   }
 
-  function win(didWin) {
-    if (didWin) _score++;
+  function win() {
+    _score++;
   }
 
   function getScore() {
@@ -84,15 +84,10 @@ const Player = (name, isAI = false) => {
 const GameBoard = (function () {
   const _gameboard = ["", "", "", "", "", "", "", "", ""];
   let turn = true; // "true" - Player 1's turn; "false" - Player 2's turn
-  let makingMove = false;
-
-  function init() {
-    console.log("initializing");
-    bindEvents();
-  }
+  let makingMove = false; // Make sure that the player can't make a move for the computer
 
   // bind events
-  function bindEvents() {
+  function _bindEvents() {
     DOMElements.gamesquares.forEach((square) => {
       let idx = square.dataset.idx;
       square.addEventListener("click", () => {
@@ -107,7 +102,6 @@ const GameBoard = (function () {
       square.textContent = "";
     });
     _gameboard.fill("");
-    switchTurn();
 
     // If AI Turn
     if (!turn) {
@@ -123,8 +117,8 @@ const GameBoard = (function () {
 
       let result = GameLogic.checkWin();
 
+      turn = !turn;
       if (result !== "win" && result !== "tie") {
-        switchTurn();
         DisplayController.displayTurn();
 
         if (!turn) {
@@ -142,20 +136,16 @@ const GameBoard = (function () {
     return _gameboard;
   }
 
-  function switchTurn() {
-    turn = !turn;
-  }
-
   function getTurn() {
     return turn;
   }
 
   function totalReset() {
-    reset();
     turn = true;
+    reset();
   }
 
-  init();
+  _bindEvents();
 
   return { reset, getGameState, changeSquare, getTurn, totalReset };
 })();
@@ -165,22 +155,16 @@ const DisplayController = (function () {
   let Player1 = Player("Player 1");
   let Player2 = Player("Player 2");
 
-  function init() {
-    bindEvents();
-  }
-
   // bind events
-  function bindEvents() {
+  function _bindEvents() {
     DOMElements.pve.addEventListener("click", _changemode.bind(DOMElements.pve));
-
     DOMElements.pvp.addEventListener("click", _changemode.bind(DOMElements.pvp));
-
     DOMElements.startBtn.addEventListener("click", _startGame);
 
     DOMElements.reset.addEventListener("click", () => {
       DOMElements.resultScreen.classList = "";
       GameBoard.reset();
-      updateScoreboard();
+      _updateScoreBoard();
     });
 
     DOMElements.newGame.addEventListener("click", () => {
@@ -222,11 +206,11 @@ const DisplayController = (function () {
   function _initializeScoreboard() {
     DOMElements.p1Name.textContent = Player1.getName();
     DOMElements.p2Name.textContent = Player2.getName();
-    updateScoreboard();
+    _updateScoreBoard();
     DOMElements.userType.classList = Player2.isPlayerAI() ? "fas fa-desktop" : "fas fa-user";
   }
 
-  function updateScoreboard() {
+  function _updateScoreBoard() {
     DOMElements.p1Score.textContent = Player1.getScore();
     DOMElements.p2Score.textContent = Player2.getScore();
     displayTurn();
@@ -240,7 +224,6 @@ const DisplayController = (function () {
     }
   }
 
-  /* Everything below is unrevised */
   function displayResults(gameResult) {
     if (gameResult === "player1" || gameResult === "player2" || gameResult === "tie") {
       let msg = "It's a tie!";
@@ -263,9 +246,9 @@ const DisplayController = (function () {
     return { Player1, Player2 };
   }
 
-  init();
+  _bindEvents();
 
-  return { updateScoreboard, displayTurn, displayResults, getPlayers };
+  return { displayTurn, displayResults, getPlayers };
 })();
 
 /* Game Logic Controller */
@@ -327,7 +310,7 @@ const GameLogic = (function (players) {
   function _handleGameResults(gameResult) {
     const currTurn = GameBoard.getTurn();
     if (gameResult === "win") {
-      currTurn ? Player1.win(true) : Player2.win(true);
+      currTurn ? Player1.win() : Player2.win();
     }
 
     DisplayController.displayResults(
